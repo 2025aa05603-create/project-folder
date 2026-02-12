@@ -13,6 +13,7 @@ number of instances used: 1281
 
 **Features:**
 
+
 age – Age of patient
 sex – Gender (0 = Female, 1 = Male)
 cp – Chest pain type
