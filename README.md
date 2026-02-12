@@ -31,7 +31,7 @@ target – 1 = Heart Disease, 0 = No Disease
 
 Here is your table formatted properly for a Jupyter Notebook Markdown cell:
 
-** Model Comparison Table**
+**Model Comparison Table:**
 
 | ML Model Name | Accuracy | AUC | Precision | Recall | F1 | MCC |
 |---------------|----------|-----|-----------|--------|----|-----|
@@ -41,6 +41,17 @@ Here is your table formatted properly for a Jupyter Notebook Markdown cell:
 | Naive Bayes | 0.79 | 0.84 | 0.74 | 0.78 | 0.76 | 0.55 |
 | Random Forest (Ensemble) | 0.88 | 0.92 | 0.85 | 0.89 | 0.87 | 0.74 |
 | XGBoost (Ensemble) | 0.89 | 0.93 | 0.86 | 0.91 | 0.88 | 0.76 |
+
+**Model Performance Observsations**
+
+| **Model** | **Observation about Model Performance** |
+|------------|------------------------------------------|
+| Logistic Regression | Logistic Regression achieved moderate performance (~72.5% accuracy). As a linear model, it may not capture complex non-linear relationships in the dataset, leading to comparatively lower predictive power. |
+| Decision Tree | Decision Tree performed exceptionally well (94.5% accuracy) with very high recall (0.959), meaning it correctly identifies most positive cases. However, single trees can sometimes overfit the training data. |
+| KNN | KNN showed strong performance (88.8% accuracy) with balanced precision and recall. It performs well when data is properly scaled but may become computationally expensive for larger datasets. |
+| Naive Bayes | Naive Bayes achieved lower performance (~72% accuracy). This may be due to its assumption that features are independent, which is often not true in medical datasets where variables are correlated. |
+| Random Forest | Random Forest achieved the best overall performance (95% accuracy, precision, recall, and F1 score). It effectively reduces overfitting by combining multiple decision trees and provides strong generalization. |
+| XGBoost | XGBoost also performed extremely well (94.3% accuracy) with high recall (0.95). It captures complex non-linear patterns efficiently and generalizes well, making it suitable for deployment. |
 
 
 
