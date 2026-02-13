@@ -28,7 +28,7 @@ ca – Number of major vessels
 thal – Thalassemia type
 target – 1 = Heart Disease, 0 = No Disease
 
-**c. Model Comparison Table:**
+**c) Model Comparison Table:**
 
 | ML Model Name       | Accuracy | AUC     | Precision | Recall  | F1 Score | MCC      |
 |---------------------|----------|---------|-----------|---------|----------|----------|
