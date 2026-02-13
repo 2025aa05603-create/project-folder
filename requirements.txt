@@ -6,14 +6,7 @@ seaborn
 xgboost
 joblib      
 seaborn         
-scikit-learn   
-    - sklearn.model_selection
-    - sklearn.preprocessing
-    - sklearn.linear_model
-    - sklearn.tree
-    - sklearn.neighbors
-    - sklearn.naive_bayes
-    - sklearn.ensemble
-    - sklearn.metrics                 
+scikit-learn                   
 warnings       
 os              
+
