@@ -1,11 +1,11 @@
-a) Problem Statement
+**a) Problem Statement**
 
 Heart disease is one of the leading causes of death worldwide. Early detection of heart disease can significantly improve patient survival rates.
 The objective of this project is to build and compare multiple machine learning classification models to predict whether a patient has heart disease based on clinical features.
 The models are evaluated using multiple performance metrics, and the best-performing model is deployed using Streamlit.
 
 
-b) Dataset Description
+**b) Dataset Description**
 
 The dataset used is a merged heart disease dataset containing patient medical attributes.
 number of features: 13 
@@ -28,7 +28,7 @@ ca – Number of major vessels
 thal – Thalassemia type
 target – 1 = Heart Disease, 0 = No Disease
 
-**Model Comparison Table:**
+**c. Model Comparison Table:**
 
 | ML Model Name       | Accuracy | AUC     | Precision | Recall  | F1 Score | MCC      |
 |---------------------|----------|---------|-----------|---------|----------|----------|
