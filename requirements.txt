@@ -1,8 +1,19 @@
 streamlit
-scikit-learn
 numpy
 pandas
 matplotlib
 seaborn
 xgboost
-joblib
+joblib      
+seaborn         
+scikit-learn   
+    - sklearn.model_selection
+    - sklearn.preprocessing
+    - sklearn.linear_model
+    - sklearn.tree
+    - sklearn.neighbors
+    - sklearn.naive_bayes
+    - sklearn.ensemble
+    - sklearn.metrics                 
+warnings       
+os              
