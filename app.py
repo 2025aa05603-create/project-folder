@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import joblib
 import os
 
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -27,9 +27,6 @@ from sklearn.metrics import (
     matthews_corrcoef,
     confusion_matrix
 )
-
-import warnings
-warnings.filterwarnings("ignore")
 
 # ===============================
 # PAGE CONFIG
@@ -137,12 +134,10 @@ if uploaded_file is not None:
             # ===============================
             st.subheader("📊 Model Performance Metrics")
 
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
             col1.metric("Accuracy", f"{acc:.4f}")
             col2.metric("AUC", f"{auc:.4f}")
             col3.metric("Precision", f"{precision:.4f}")
-
-            col4, col5, col6 = st.columns(3)
             col4.metric("Recall", f"{recall:.4f}")
             col5.metric("F1 Score", f"{f1:.4f}")
             col6.metric("MCC", f"{mcc:.4f}")
