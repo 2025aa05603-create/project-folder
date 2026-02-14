@@ -37,7 +37,7 @@ warnings.filterwarnings("ignore")
 st.set_page_config(page_title="Heart Disease Prediction", layout="wide")
 
 st.title("❤️ Heart Disease Prediction App")
-st.write("Upload a dataset to train and evaluate the model.")
+st.write("Upload a dataset to train and evaluate different ML models.")
 
 # ===============================
 # FILE UPLOAD
@@ -61,23 +61,69 @@ if uploaded_file is not None:
             X, y, test_size=0.2, random_state=42
         )
 
-        # Feature scaling
+        # Scaling (used only for some models)
         scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
 
-        if st.button("Train Logistic Regression Model"):
+        # ===============================
+        # MODEL SELECTION DROPDOWN
+        # ===============================
+        model_name = st.selectbox(
+            "Select Model",
+            [
+                "Logistic Regression",
+                "Decision Tree",
+                "KNN",
+                "Naive Bayes",
+                "Random Forest",
+                "XGBoost"
+            ]
+        )
 
-            # Train model
-            model = LogisticRegression(max_iter=1000)
-            model.fit(X_train, y_train)
-
-            # Predictions
-            y_pred = model.predict(X_test)
-            y_prob = model.predict_proba(X_test)[:, 1]
+        if st.button("Train Selected Model"):
 
             # ===============================
-            # CALCULATE METRICS
+            # MODEL INITIALIZATION
+            # ===============================
+            if model_name == "Logistic Regression":
+                model = LogisticRegression(max_iter=1000)
+                model.fit(X_train_scaled, y_train)
+                y_pred = model.predict(X_test_scaled)
+                y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+            elif model_name == "Decision Tree":
+                model = DecisionTreeClassifier(random_state=42)
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            elif model_name == "KNN":
+                model = KNeighborsClassifier()
+                model.fit(X_train_scaled, y_train)
+                y_pred = model.predict(X_test_scaled)
+                y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+            elif model_name == "Naive Bayes":
+                model = GaussianNB()
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            elif model_name == "Random Forest":
+                model = RandomForestClassifier(random_state=42)
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            elif model_name == "XGBoost":
+                model = xgb.XGBClassifier(random_state=42, eval_metric='logloss')
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            # ===============================
+            # METRICS CALCULATION
             # ===============================
             acc = accuracy_score(y_test, y_pred)
             auc = roc_auc_score(y_test, y_prob)
@@ -124,5 +170,8 @@ if uploaded_file is not None:
             # ===============================
             # SAVE MODEL
             # ===============================
-            joblib.dump(model, "logistic_model.pkl")
-            st.success("Model saved successfully!")
+            os.makedirs("models", exist_ok=True)
+            model_filename = f"models/{model_name.replace(' ', '_').lower()}.pkl"
+            joblib.dump(model, model_filename)
+
+            st.success(f"{model_name} model saved successfully!")
