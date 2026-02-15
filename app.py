@@ -8,6 +8,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import joblib
 import os
+import kagglehub
+import zipfile
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -33,26 +35,63 @@ from sklearn.metrics import (
 # ===============================
 st.set_page_config(page_title="Heart Disease Prediction", layout="wide")
 st.title("❤️ Heart Disease Prediction")
-st.write("Upload a dataset to test and evaluate different ML models with preset hyperparameters.")
+st.write("Dataset is automatically downloaded from Kaggle and evaluated using multiple ML models.")
 
 # ===============================
-# FILE UPLOAD
+# DOWNLOAD DATA FROM KAGGLE
 # ===============================
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+st.subheader("📥 Download Dataset from Kaggle")
 
-if uploaded_file is not None:
+dataset_name = "atousaomidvar/raw-merged-heart-dataset"
 
-    df = pd.read_csv(uploaded_file)
-    st.write("### Dataset Preview")
-    st.dataframe(df.head())
+if st.button("Download and Load Dataset"):
 
-    if 'target' not in df.columns:
-        st.error("Dataset must contain 'target' column.")
-    else:
+    with st.spinner("Downloading dataset from Kaggle..."):
+        dataset_path = kagglehub.dataset_download(dataset_name)
+
+        csv_file = None
+
+        # If downloaded as folder
+        if os.path.isdir(dataset_path):
+            for file in os.listdir(dataset_path):
+                if file.endswith(".csv"):
+                    csv_file = os.path.join(dataset_path, file)
+                    break
+
+        # If downloaded as zip
+        elif dataset_path.endswith(".zip"):
+            extract_folder = "data"
+            os.makedirs(extract_folder, exist_ok=True)
+
+            with zipfile.ZipFile(dataset_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_folder)
+                for file in zip_ref.namelist():
+                    if file.endswith(".csv"):
+                        csv_file = os.path.join(extract_folder, file)
+                        break
+
+        if csv_file is None:
+            st.error("CSV file not found in dataset.")
+            st.stop()
+
         # ===============================
-        # LABEL ENCODING FOR CATEGORICAL COLUMNS
+        # LOAD DATA
+        # ===============================
+        df = pd.read_csv(csv_file)
+
+        st.success("Dataset downloaded successfully!")
+        st.write("### Dataset Preview")
+        st.dataframe(df.head())
+
+        if 'target' not in df.columns:
+            st.error("Dataset must contain 'target' column.")
+            st.stop()
+
+        # ===============================
+        # LABEL ENCODING
         # ===============================
         categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+
         for col in categorical_cols:
             if col in df.columns:
                 le = LabelEncoder()
@@ -62,25 +101,27 @@ if uploaded_file is not None:
         # DATA CLEANING
         # ===============================
         df.replace("?", np.nan, inplace=True)
+
         for col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
+
         df.fillna(df.median(), inplace=True)
 
         # ===============================
-        # FEATURES AND TARGET
+        # FEATURES & TARGET
         # ===============================
         X = df.drop('target', axis=1)
         y = df['target']
 
         # ===============================
-        # TRAIN-TEST SPLIT
+        # TRAIN TEST SPLIT
         # ===============================
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.3, random_state=42
         )
 
         # ===============================
-        # FEATURE SCALING (for Logistic Regression and KNN)
+        # SCALING
         # ===============================
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
@@ -104,7 +145,7 @@ if uploaded_file is not None:
         if st.button("Train Selected Model"):
 
             # ===============================
-            # INITIALIZE MODELS WITH SPECIFIC HYPERPARAMETERS
+            # MODEL INITIALIZATION
             # ===============================
             if model_name == "Logistic Regression":
                 model = LogisticRegression(
@@ -168,7 +209,7 @@ if uploaded_file is not None:
                 y_prob = model.predict_proba(X_test)[:, 1]
 
             # ===============================
-            # METRICS CALCULATION
+            # METRICS
             # ===============================
             acc = accuracy_score(y_test, y_pred)
             auc = roc_auc_score(y_test, y_prob)
@@ -181,6 +222,7 @@ if uploaded_file is not None:
             # DISPLAY METRICS
             # ===============================
             st.subheader("📊 Model Performance Metrics")
+
             col1, col2, col3, col4, col5, col6 = st.columns(6)
             col1.metric("Accuracy", f"{acc:.4f}")
             col2.metric("AUC", f"{auc:.4f}")
@@ -193,6 +235,7 @@ if uploaded_file is not None:
             # CONFUSION MATRIX
             # ===============================
             st.subheader("🔍 Confusion Matrix")
+
             cm = confusion_matrix(y_test, y_pred)
             fig, ax = plt.subplots(figsize=(3, 3))
             sns.heatmap(
@@ -212,4 +255,5 @@ if uploaded_file is not None:
             os.makedirs("models", exist_ok=True)
             model_filename = f"models/{model_name.replace(' ', '_').lower()}.pkl"
             joblib.dump(model, model_filename)
+
             st.success(f"{model_name} model saved successfully!")
