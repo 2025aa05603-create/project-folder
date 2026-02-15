@@ -45,14 +45,14 @@ target – 1 = Heart Disease, 0 = No Disease
 | Random Forest (Ensemble) | 0.9756 | 0.9980 | 0.9787    | 0.9728  | 0.9758   | 0.9512   |
 | XGBoost (Ensemble)  | 0.9802   | 0.9976  | 0.9760    | 0.9849  | 0.9805   | 0.9603   |
 
-**Model Performance Observsations**
+**Model Performance Observations**
 
 | ML Model Name             | Observation ( model performance  )                                                                                      |
 |---------------------------|------------------------------------------------------------------------------------------------------------------------------|
 | Logistic Regression       | Moderate performance; decent accuracy (0.7359) and F1 Score (0.7414), but lower MCC (0.4717) indicates limited correlation between predictions and true labels. Good baseline model but underperforms compared to ensemble and KNN models. |
 | Decision Tree             | Strong performance with high accuracy (0.8534) and F1 Score (0.8571); MCC (0.7071) shows good predictive power. May overfit on complex data, but interpretable and fast. |
 | KNN                       |Excellent performance with very high accuracy (0.9802), F1 Score (0.9805), and MCC (0.9604). Sensitive to feature scaling and data size; may be slower for large datasets.|
-| Naive Bayes               |Similar to Logistic Regression in accuracy (0.7359); precision lower (0.7147) but recall higher (0.7946), indicating it predicts positives reasonably well but misclassifies some negatives. Good for baseline probabilistic modeling.|
+| Naive Bayes               |Similar to Logistic Regression in accuracy (0.7359); precision lower (0.7147) but recall higher (0.7946), indicating it predicts positives reasonably well but misclassifies some negatives. Good for baseline probabilistic modelling.|
 | Random Forest (Ensemble)  |Very strong performance; high accuracy (0.9756), F1 Score (0.9758), and MCC (0.9512). Robust to overfitting and handles complex interactions well; slightly lower recall than XGBoost but overall reliable.|
 | XGBoost (Ensemble)        | This model outperformed performance; highest F1 Score (0.9805) and strong MCC (0.9603). Excels in handling complex data, missing values, and feature interactions. Slightly higher recall (0.9849) than Random Forest, making it better at capturing positives. |
 
