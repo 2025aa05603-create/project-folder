@@ -38,25 +38,26 @@ target – 1 = Heart Disease, 0 = No Disease
 
 | ML Model Name       | Accuracy | AUC     | Precision | Recall  | F1 Score | MCC      |
 |---------------------|----------|---------|-----------|---------|----------|----------|
-| Logistic Regression  | 0.7563   | 0.8154  | 0.6810    | 0.8778  | 0.7670   | 0.5386  |
-| Decision Tree       | 0.7563   | 0.8330  | 0.6667    | 0.9333  | 0.7778   | 0.5611   |
-| KNN                 | 0.7766   | 0.8307  | 0.7300    | 0.8111  | 0.7684   | 0.5568   |
-| Naive Bayes         | 0.7411   | 0.7934  | 0.6789    | 0.8222  | 0.7437   | 0.4961   |
-| Random Forest (Ensemble) | 0.8528 | 0.9283 | 0.8280    | 0.8556  | 0.8415   | 0.7045   |
-| XGBoost (Ensemble)  | 0.8731   | 0.9248  | 0.8495    | 0.8778  | 0.8634   | 0.7453   |
+| Logistic Regression  | 0.7359  | 0.8100  | 0.7337    | 0.7492 | 0.7414   | 0.4717  |
+| Decision Tree       | 0.8534   | 0.9109  | 0.8446    | 0.8701  | 0.8571  | 0.7071  |
+| KNN                 | 0.9802   | 0.9917  | 0.9732    | 0.9879  | 0.9805  | 0.9604  |
+| Naive Bayes         | 0.7359  | 0.8020  | 0.7147    | 0.7946  | 0.7525   | 0.4741   |
+| Random Forest (Ensemble) | 0.9756 | 0.9980 | 0.9787    | 0.9728  | 0.9758   | 0.9512   |
+| XGBoost (Ensemble)  | 0.9802   | 0.9976  | 0.9760    | 0.9849  | 0.9805   | 0.9603   |
 
 **Model Performance Observsations**
 
 | ML Model Name             | Observation ( model performance  )                                                                                      |
 |---------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| Logistic Regression       | Shows balanced performance with good Recall (0.8778), meaning it identifies most heart disease cases correctly. However, moderate MCC (0.5386) indicates limited overall correlation compared to ensemble models. Suitable as a strong baseline linear model. |
-| Decision Tree             | Achieves very high Recall (0.9333), making it good for minimizing false negatives. However, slightly lower Precision suggests more false positives. Performance is decent but prone to overfitting compared to ensemble methods. |
-| KNN                       | Provides balanced Accuracy (0.7766) with stable Precision and Recall. Performance is consistent but does not outperform ensemble methods. Sensitive to scaling and data distribution. |
-| Naive Bayes               |Lowest overall performance among all models. Lower AUC (0.7934) and MCC (0.4961) indicate weaker predictive power. Assumption of feature independence likely limits performance on this dataset. Serves mainly as a baseline probabilistic model. |
-| Random Forest (Ensemble)  |Strong performance across all metrics with high AUC (0.9283) and MCC (0.7045). Demonstrates good balance between Precision and Recall. Robust and less prone to overfitting due to ensemble averaging. |
-| XGBoost (Ensemble)        | Best performing model overall. Highest Accuracy (0.8731), F1 Score (0.8634), and MCC (0.7453). Excellent balance between Precision and Recall. Strong generalization capability due to gradient boosting optimization. |
+| Logistic Regression       | Moderate performance; decent accuracy (0.7359) and F1 Score (0.7414), but lower MCC (0.4717) indicates limited correlation between predictions and true labels. Good baseline model but underperforms compared to ensemble and KNN models. |
+| Decision Tree             | Strong performance with high accuracy (0.8534) and F1 Score (0.8571); MCC (0.7071) shows good predictive power. May overfit on complex data, but interpretable and fast. |
+| KNN                       |Excellent performance with very high accuracy (0.9802), F1 Score (0.9805), and MCC (0.9604). Sensitive to feature scaling and data size; may be slower for large datasets.|
+| Naive Bayes               |Similar to Logistic Regression in accuracy (0.7359); precision lower (0.7147) but recall higher (0.7946), indicating it predicts positives reasonably well but misclassifies some negatives. Good for baseline probabilistic modeling.|
+| Random Forest (Ensemble)  |Very strong performance; high accuracy (0.9756), F1 Score (0.9758), and MCC (0.9512). Robust to overfitting and handles complex interactions well; slightly lower recall than XGBoost but overall reliable.|
+| XGBoost (Ensemble)        | This model outperformed performance; highest F1 Score (0.9805) and strong MCC (0.9603). Excels in handling complex data, missing values, and feature interactions. Slightly higher recall (0.9849) than Random Forest, making it better at capturing positives. |
 
 
-
+**Conclusion:**
+ensemble models, particularly XGBoost, are the most reliable and effective choice for this prediction task, offering a balance of accuracy, robustness, and generalization. Simpler models can still be valuable for quick insights or interpretability but are less competitive in predictive performance.
 
 
