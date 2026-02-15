@@ -9,7 +9,13 @@ The models are evaluated using multiple performance metrics, and the best-perfor
 
 The dataset used is a merged heart disease dataset containing patient medical attributes.
 number of features: 13 
-number of instances used: 1281
+number of instances used: >500
+Dataset contains both categorical and numerical features, which were label-encoded for machine learning models.
+Missing values represented by "?" were replaced with the median for numerical features.
+Data was split into training (70%) and testing (30%) sets.
+Feature scaling (StandardScaler) was applied for models sensitive to feature magnitudes (Logistic Regression, KNN, Naive Bayes,Decision Tree,Random Forest (Ensemble),XGBoost (Ensemble)).
+This dataset combines multiple sources of heart disease data, providing a comprehensive set of risk factors for model training.
+
 
 **Features:**
 
