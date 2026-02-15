@@ -1,7 +1,3 @@
-# ==========================================
-# HEART DISEASE PREDICTION - STREAMLIT APP
-# ==========================================
-
 # ===============================
 # IMPORT LIBRARIES
 # ===============================
@@ -12,9 +8,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import joblib
 import os
-import kagglehub
-import zipfile
 
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -38,203 +33,142 @@ from sklearn.metrics import (
 # ===============================
 st.set_page_config(page_title="Heart Disease Prediction", layout="wide")
 st.title("❤️ Heart Disease Prediction")
-st.write("Training dataset is downloaded from Kaggle. Upload a test CSV file for evaluation.")
+st.write("Upload a dataset to test and evaluate different ML models with preset hyperparameters.")
 
 # ===============================
-# DOWNLOAD TRAINING DATA
+# FILE UPLOAD
 # ===============================
-@st.cache_data
-def load_kaggle_dataset(dataset_name):
-    dataset_path = kagglehub.dataset_download(dataset_name)
+uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
-    csv_file = None
+if uploaded_file is not None:
 
-    if os.path.isdir(dataset_path):
-        for file in os.listdir(dataset_path):
-            if file.endswith(".csv"):
-                csv_file = os.path.join(dataset_path, file)
-                break
-
-    elif dataset_path.endswith(".zip"):
-        extract_folder = "data"
-        os.makedirs(extract_folder, exist_ok=True)
-        with zipfile.ZipFile(dataset_path, 'r') as zip_ref:
-            zip_ref.extractall(extract_folder)
-            for file in zip_ref.namelist():
-                if file.endswith(".csv"):
-                    csv_file = os.path.join(extract_folder, file)
-                    break
-
-    if csv_file is None:
-        return None
-
-    return pd.read_csv(csv_file)
-
-
-# ===============================
-# PREPROCESS FUNCTION
-# ===============================
-def preprocess_data(df):
-    categorical_cols = ['sex', 'cp', 'fbs', 'restecg',
-                        'exang', 'slope', 'ca', 'thal']
-
-    for col in categorical_cols:
-        if col in df.columns:
-            le = LabelEncoder()
-            df[col] = le.fit_transform(df[col].astype(str))
-
-    df.replace("?", np.nan, inplace=True)
-
-    for col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-
-    df.fillna(df.median(), inplace=True)
-
-    return df
-
-
-# ===============================
-# LOAD DATA FROM KAGGLE
-# ===============================
-dataset_name = st.text_input(
-    "Enter Kaggle Dataset Name:",
-    value="atousaomidvar/raw-merged-heart-dataset"
-)
-
-if st.button("Download Training Dataset"):
-
-    with st.spinner("Downloading dataset from Kaggle..."):
-        df = load_kaggle_dataset(dataset_name)
-
-    if df is None:
-        st.error("Failed to download dataset.")
-        st.stop()
-
-    st.success("Training dataset loaded successfully!")
-    st.write("### Training Data Preview")
+    df = pd.read_csv(uploaded_file)
+    st.write("### Dataset Preview")
     st.dataframe(df.head())
 
     if 'target' not in df.columns:
         st.error("Dataset must contain 'target' column.")
-        st.stop()
-
-    # ===============================
-    # PREPROCESS TRAINING DATA
-    # ===============================
-    df = preprocess_data(df)
-
-    X_train = df.drop('target', axis=1)
-    y_train = df['target']
-
-    # ===============================
-    # SCALER
-    # ===============================
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-
-    # ===============================
-    # MODEL SELECTION
-    # ===============================
-    model_name = st.selectbox(
-        "Select Model",
-        [
-            "Logistic Regression",
-            "Decision Tree",
-            "KNN",
-            "Naive Bayes",
-            "Random Forest",
-            "XGBoost"
-        ]
-    )
-
-    if st.button("Train Selected Model"):
+    else:
+        # ===============================
+        # LABEL ENCODING FOR CATEGORICAL COLUMNS
+        # ===============================
+        categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+        for col in categorical_cols:
+            if col in df.columns:
+                le = LabelEncoder()
+                df[col] = le.fit_transform(df[col].astype(str))
 
         # ===============================
-        # MODEL INITIALIZATION
+        # DATA CLEANING
         # ===============================
-        if model_name == "Logistic Regression":
-            model = LogisticRegression(
-                C=0.005,
-                penalty="l2",
-                solver="lbfgs",
-                max_iter=1000
-            )
-            model.fit(X_train_scaled, y_train)
-
-        elif model_name == "Decision Tree":
-            model = DecisionTreeClassifier(
-                max_depth=13,
-                min_samples_split=200,
-                min_samples_leaf=4,
-                random_state=42
-            )
-            model.fit(X_train, y_train)
-
-        elif model_name == "KNN":
-            model = KNeighborsClassifier(n_neighbors=5)
-            model.fit(X_train_scaled, y_train)
-
-        elif model_name == "Naive Bayes":
-            model = GaussianNB()
-            model.fit(X_train, y_train)
-
-        elif model_name == "Random Forest":
-            model = RandomForestClassifier(
-                n_estimators=200,
-                max_depth=11,
-                min_samples_split=10,
-                random_state=42
-            )
-            model.fit(X_train, y_train)
-
-        elif model_name == "XGBoost":
-            model = xgb.XGBClassifier(
-                n_estimators=100,
-                max_depth=7,
-                learning_rate=0.1,
-                random_state=42,
-                eval_metric='logloss'
-            )
-            model.fit(X_train, y_train)
-
-        st.success(f"{model_name} trained successfully!")
+        df.replace("?", np.nan, inplace=True)
+        for col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        df.fillna(df.median(), inplace=True)
 
         # ===============================
-        # SAVE MODEL
+        # FEATURES AND TARGET
         # ===============================
-        os.makedirs("models", exist_ok=True)
-        joblib.dump(model, f"models/{model_name.replace(' ', '_').lower()}.pkl")
+        X = df.drop('target', axis=1)
+        y = df['target']
 
         # ===============================
-        # UPLOAD TEST CSV
+        # TRAIN-TEST SPLIT
         # ===============================
-        st.subheader("📤 Upload Test Dataset (CSV Only)")
-        uploaded_test = st.file_uploader("Upload test_data.csv", type=["csv"])
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.3, random_state=42
+        )
 
-        if uploaded_test is not None:
+        # ===============================
+        # FEATURE SCALING (for Logistic Regression and KNN)
+        # ===============================
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
 
-            test_df = pd.read_csv(uploaded_test)
-            st.write("### Test Data Preview")
-            st.dataframe(test_df.head())
+        # ===============================
+        # MODEL SELECTION
+        # ===============================
+        model_name = st.selectbox(
+            "Select Model",
+            [
+                "Logistic Regression",
+                "Decision Tree",
+                "KNN",
+                "Naive Bayes",
+                "Random Forest",
+                "XGBoost"
+            ]
+        )
 
-            if 'target' not in test_df.columns:
-                st.error("Test dataset must contain 'target' column.")
-                st.stop()
-
-            test_df = preprocess_data(test_df)
-
-            X_test = test_df.drop('target', axis=1)
-            y_test = test_df['target']
-
-            # Apply scaling if required
-            if model_name in ["Logistic Regression", "KNN"]:
-                X_test = scaler.transform(X_test)
-
-            y_pred = model.predict(X_test)
-            y_prob = model.predict_proba(X_test)[:, 1]
+        if st.button("Train Selected Model"):
 
             # ===============================
-            # METRICS
+            # INITIALIZE MODELS WITH SPECIFIC HYPERPARAMETERS
+            # ===============================
+            if model_name == "Logistic Regression":
+                model = LogisticRegression(
+                    C=0.005,
+                    penalty="l2",
+                    solver="lbfgs",
+                    max_iter=1000
+                )
+                model.fit(X_train_scaled, y_train)
+                y_pred = model.predict(X_test_scaled)
+                y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+            elif model_name == "Decision Tree":
+                model = DecisionTreeClassifier(
+                    max_depth=13,
+                    min_samples_split=200,
+                    min_samples_leaf=4,
+                    random_state=42
+                )
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            elif model_name == "KNN":
+                model = KNeighborsClassifier(
+                    n_neighbors=5,
+                    weights="uniform",
+                    p=2
+                )
+                model.fit(X_train_scaled, y_train)
+                y_pred = model.predict(X_test_scaled)
+                y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+            elif model_name == "Naive Bayes":
+                model = GaussianNB()
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test_scaled)
+                y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+            elif model_name == "Random Forest":
+                model = RandomForestClassifier(
+                    n_estimators=200,
+                    max_depth=11,
+                    min_samples_split=10,
+                    random_state=42
+                )
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            elif model_name == "XGBoost":
+                model = xgb.XGBClassifier(
+                    n_estimators=100,
+                    max_depth=7,
+                    learning_rate=0.1,
+                    random_state=42,
+                    eval_metric='logloss'
+                )
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                y_prob = model.predict_proba(X_test)[:, 1]
+
+            # ===============================
+            # METRICS CALCULATION
             # ===============================
             acc = accuracy_score(y_test, y_pred)
             auc = roc_auc_score(y_test, y_prob)
@@ -243,8 +177,10 @@ if st.button("Download Training Dataset"):
             f1 = f1_score(y_test, y_pred)
             mcc = matthews_corrcoef(y_test, y_pred)
 
-            st.subheader("📊 Evaluation Metrics")
-
+            # ===============================
+            # DISPLAY METRICS
+            # ===============================
+            st.subheader("📊 Model Performance Metrics")
             col1, col2, col3, col4, col5, col6 = st.columns(6)
             col1.metric("Accuracy", f"{acc:.4f}")
             col2.metric("AUC", f"{auc:.4f}")
@@ -257,16 +193,23 @@ if st.button("Download Training Dataset"):
             # CONFUSION MATRIX
             # ===============================
             st.subheader("🔍 Confusion Matrix")
-
             cm = confusion_matrix(y_test, y_pred)
-            fig, ax = plt.subplots(figsize=(4, 4))
+            fig, ax = plt.subplots(figsize=(3, 3))
             sns.heatmap(
                 cm,
                 annot=True,
                 fmt='d',
                 cmap='Blues',
                 xticklabels=['Pred 0', 'Pred 1'],
-                yticklabels=['Actual 0', 'Actual 1']
+                yticklabels=['Actual 0', 'Actual 1'],
+                ax=ax
             )
-
             st.pyplot(fig)
+
+            # ===============================
+            # SAVE MODEL
+            # ===============================
+            os.makedirs("models", exist_ok=True)
+            model_filename = f"models/{model_name.replace(' ', '_').lower()}.pkl"
+            joblib.dump(model, model_filename)
+            st.success(f"{model_name} model saved successfully!")
