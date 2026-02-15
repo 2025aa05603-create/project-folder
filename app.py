@@ -35,225 +35,194 @@ from sklearn.metrics import (
 # ===============================
 st.set_page_config(page_title="Heart Disease Prediction", layout="wide")
 st.title("❤️ Heart Disease Prediction")
-st.write("Dataset is automatically downloaded from Kaggle and evaluated using multiple ML models.")
+st.write("Training data is fetched directly from Kaggle. Upload test_data.csv for evaluation.")
 
 # ===============================
-# DOWNLOAD DATA FROM KAGGLE
+# DOWNLOAD TRAINING DATA FROM KAGGLE
 # ===============================
-st.subheader("📥 Download Dataset from Kaggle")
-
 dataset_name = "atousaomidvar/raw-merged-heart-dataset"
 
-if st.button("Download and Load Dataset"):
+@st.cache_data
+def load_kaggle_data():
+    dataset_path = kagglehub.dataset_download(dataset_name)
 
-    with st.spinner("Downloading dataset from Kaggle..."):
-        dataset_path = kagglehub.dataset_download(dataset_name)
+    csv_file = None
 
-        csv_file = None
-
-        # If downloaded as folder
-        if os.path.isdir(dataset_path):
-            for file in os.listdir(dataset_path):
+    if os.path.isdir(dataset_path):
+        for file in os.listdir(dataset_path):
+            if file.endswith(".csv"):
+                csv_file = os.path.join(dataset_path, file)
+                break
+    elif dataset_path.endswith(".zip"):
+        extract_folder = "data"
+        os.makedirs(extract_folder, exist_ok=True)
+        with zipfile.ZipFile(dataset_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_folder)
+            for file in zip_ref.namelist():
                 if file.endswith(".csv"):
-                    csv_file = os.path.join(dataset_path, file)
+                    csv_file = os.path.join(extract_folder, file)
                     break
 
-        # If downloaded as zip
-        elif dataset_path.endswith(".zip"):
-            extract_folder = "data"
-            os.makedirs(extract_folder, exist_ok=True)
+    if csv_file is None:
+        return None
 
-            with zipfile.ZipFile(dataset_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_folder)
-                for file in zip_ref.namelist():
-                    if file.endswith(".csv"):
-                        csv_file = os.path.join(extract_folder, file)
-                        break
+    return pd.read_csv(csv_file)
 
-        if csv_file is None:
-            st.error("CSV file not found in dataset.")
+
+df = load_kaggle_data()
+
+if df is None:
+    st.error("Failed to load dataset from Kaggle.")
+    st.stop()
+
+st.success("Training dataset loaded from Kaggle successfully!")
+
+# ===============================
+# PREPROCESSING FUNCTION
+# ===============================
+def preprocess(df):
+    categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+
+    for col in categorical_cols:
+        if col in df.columns:
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col].astype(str))
+
+    df.replace("?", np.nan, inplace=True)
+
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    df.fillna(df.median(), inplace=True)
+
+    return df
+
+
+df = preprocess(df)
+
+if 'target' not in df.columns:
+    st.error("Training dataset must contain 'target' column.")
+    st.stop()
+
+X_train = df.drop('target', axis=1)
+y_train = df['target']
+
+# ===============================
+# SCALER
+# ===============================
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+
+# ===============================
+# MODEL SELECTION
+# ===============================
+model_name = st.selectbox(
+    "Select Model",
+    [
+        "Logistic Regression",
+        "Decision Tree",
+        "KNN",
+        "Naive Bayes",
+        "Random Forest",
+        "XGBoost"
+    ]
+)
+
+# ===============================
+# TRAIN MODEL
+# ===============================
+if st.button("Train Model"):
+
+    if model_name == "Logistic Regression":
+        model = LogisticRegression(C=0.005, penalty="l2", solver="lbfgs", max_iter=1000)
+        model.fit(X_train_scaled, y_train)
+
+    elif model_name == "Decision Tree":
+        model = DecisionTreeClassifier(max_depth=13, min_samples_split=200,
+                                       min_samples_leaf=4, random_state=42)
+        model.fit(X_train, y_train)
+
+    elif model_name == "KNN":
+        model = KNeighborsClassifier(n_neighbors=5)
+        model.fit(X_train_scaled, y_train)
+
+    elif model_name == "Naive Bayes":
+        model = GaussianNB()
+        model.fit(X_train, y_train)
+
+    elif model_name == "Random Forest":
+        model = RandomForestClassifier(n_estimators=200, max_depth=11,
+                                       min_samples_split=10, random_state=42)
+        model.fit(X_train, y_train)
+
+    elif model_name == "XGBoost":
+        model = xgb.XGBClassifier(n_estimators=100, max_depth=7,
+                                  learning_rate=0.1, random_state=42,
+                                  eval_metric='logloss')
+        model.fit(X_train, y_train)
+
+    st.success(f"{model_name} trained successfully!")
+
+    # ===============================
+    # UPLOAD TEST DATA
+    # ===============================
+    st.subheader("📤 Upload test_data.csv for Evaluation")
+    uploaded_test = st.file_uploader("Upload test_data.csv", type=["csv"])
+
+    if uploaded_test is not None:
+
+        test_df = pd.read_csv(uploaded_test)
+        test_df = preprocess(test_df)
+
+        if 'target' not in test_df.columns:
+            st.error("Test data must contain 'target' column.")
             st.stop()
 
-        # ===============================
-        # LOAD DATA
-        # ===============================
-        df = pd.read_csv(csv_file)
+        X_test = test_df.drop('target', axis=1)
+        y_test = test_df['target']
 
-        st.success("Dataset downloaded successfully!")
-        st.write("### Dataset Preview")
-        st.dataframe(df.head())
+        # Scale only if required
+        if model_name in ["Logistic Regression", "KNN"]:
+            X_test = scaler.transform(X_test)
 
-        if 'target' not in df.columns:
-            st.error("Dataset must contain 'target' column.")
-            st.stop()
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]
 
         # ===============================
-        # LABEL ENCODING
+        # METRICS
         # ===============================
-        categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+        acc = accuracy_score(y_test, y_pred)
+        auc = roc_auc_score(y_test, y_prob)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        mcc = matthews_corrcoef(y_test, y_pred)
 
-        for col in categorical_cols:
-            if col in df.columns:
-                le = LabelEncoder()
-                df[col] = le.fit_transform(df[col].astype(str))
+        st.subheader("📊 Test Data Performance")
 
-        # ===============================
-        # DATA CLEANING
-        # ===============================
-        df.replace("?", np.nan, inplace=True)
-
-        for col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-
-        df.fillna(df.median(), inplace=True)
-
-        # ===============================
-        # FEATURES & TARGET
-        # ===============================
-        X = df.drop('target', axis=1)
-        y = df['target']
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1.metric("Accuracy", f"{acc:.4f}")
+        col2.metric("AUC", f"{auc:.4f}")
+        col3.metric("Precision", f"{precision:.4f}")
+        col4.metric("Recall", f"{recall:.4f}")
+        col5.metric("F1 Score", f"{f1:.4f}")
+        col6.metric("MCC", f"{mcc:.4f}")
 
         # ===============================
-        # TRAIN TEST SPLIT
+        # CONFUSION MATRIX
         # ===============================
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        st.subheader("🔍 Confusion Matrix")
 
-        # ===============================
-        # SCALING
-        # ===============================
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+        cm = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots(figsize=(3, 3))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['Pred 0', 'Pred 1'],
+                    yticklabels=['Actual 0', 'Actual 1'])
+        st.pyplot(fig)
 
         # ===============================
-        # MODEL SELECTION
+        # SAVE MODEL
         # ===============================
-        model_name = st.selectbox(
-            "Select Model",
-            [
-                "Logistic Regression",
-                "Decision Tree",
-                "KNN",
-                "Naive Bayes",
-                "Random Forest",
-                "XGBoost"
-            ]
-        )
-
-        if st.button("Train Selected Model"):
-
-            # ===============================
-            # MODEL INITIALIZATION
-            # ===============================
-            if model_name == "Logistic Regression":
-                model = LogisticRegression(
-                    C=0.005,
-                    penalty="l2",
-                    solver="lbfgs",
-                    max_iter=1000
-                )
-                model.fit(X_train_scaled, y_train)
-                y_pred = model.predict(X_test_scaled)
-                y_prob = model.predict_proba(X_test_scaled)[:, 1]
-
-            elif model_name == "Decision Tree":
-                model = DecisionTreeClassifier(
-                    max_depth=13,
-                    min_samples_split=200,
-                    min_samples_leaf=4,
-                    random_state=42
-                )
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                y_prob = model.predict_proba(X_test)[:, 1]
-
-            elif model_name == "KNN":
-                model = KNeighborsClassifier(
-                    n_neighbors=5,
-                    weights="uniform",
-                    p=2
-                )
-                model.fit(X_train_scaled, y_train)
-                y_pred = model.predict(X_test_scaled)
-                y_prob = model.predict_proba(X_test_scaled)[:, 1]
-
-            elif model_name == "Naive Bayes":
-                model = GaussianNB()
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test_scaled)
-                y_prob = model.predict_proba(X_test_scaled)[:, 1]
-
-            elif model_name == "Random Forest":
-                model = RandomForestClassifier(
-                    n_estimators=200,
-                    max_depth=11,
-                    min_samples_split=10,
-                    random_state=42
-                )
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                y_prob = model.predict_proba(X_test)[:, 1]
-
-            elif model_name == "XGBoost":
-                model = xgb.XGBClassifier(
-                    n_estimators=100,
-                    max_depth=7,
-                    learning_rate=0.1,
-                    random_state=42,
-                    eval_metric='logloss'
-                )
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                y_prob = model.predict_proba(X_test)[:, 1]
-
-            # ===============================
-            # METRICS
-            # ===============================
-            acc = accuracy_score(y_test, y_pred)
-            auc = roc_auc_score(y_test, y_prob)
-            precision = precision_score(y_test, y_pred)
-            recall = recall_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred)
-            mcc = matthews_corrcoef(y_test, y_pred)
-
-            # ===============================
-            # DISPLAY METRICS
-            # ===============================
-            st.subheader("📊 Model Performance Metrics")
-
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
-            col1.metric("Accuracy", f"{acc:.4f}")
-            col2.metric("AUC", f"{auc:.4f}")
-            col3.metric("Precision", f"{precision:.4f}")
-            col4.metric("Recall", f"{recall:.4f}")
-            col5.metric("F1 Score", f"{f1:.4f}")
-            col6.metric("MCC", f"{mcc:.4f}")
-
-            # ===============================
-            # CONFUSION MATRIX
-            # ===============================
-            st.subheader("🔍 Confusion Matrix")
-
-            cm = confusion_matrix(y_test, y_pred)
-            fig, ax = plt.subplots(figsize=(3, 3))
-            sns.heatmap(
-                cm,
-                annot=True,
-                fmt='d',
-                cmap='Blues',
-                xticklabels=['Pred 0', 'Pred 1'],
-                yticklabels=['Actual 0', 'Actual 1'],
-                ax=ax
-            )
-            st.pyplot(fig)
-
-            # ===============================
-            # SAVE MODEL
-            # ===============================
-            os.makedirs("models", exist_ok=True)
-            model_filename = f"models/{model_name.replace(' ', '_').lower()}.pkl"
-            joblib.dump(model, model_filename)
-
-            st.success(f"{model_name} model saved successfully!")
+        os.makedirs("models", exist_ok=True)
+        joblib.dump(model, f"models/{model_name.replace(' ', '_').lower()}.pkl")
+        st.success("Model saved successfully!")
