@@ -140,7 +140,7 @@ if uploaded_file is not None:
 
             elif model_name == "Naive Bayes":
                 model = GaussianNB()
-                model.fit(X_train, y_train)
+                model.fit(X_train_scaled, y_train)
                 y_pred = model.predict(X_test_scaled)
                 y_prob = model.predict_proba(X_test_scaled)[:, 1]
 
