@@ -194,7 +194,7 @@ if uploaded_file is not None:
             # ===============================
             st.subheader("🔍 Confusion Matrix")
             cm = confusion_matrix(y_test, y_pred)
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(figsize=(3, 3))
             sns.heatmap(
                 cm,
                 annot=True,
