@@ -35,20 +35,20 @@ target – 1 = Heart Disease, 0 = No Disease
 | Logistic Regression  | 0.7563   | 0.8154  | 0.6810    | 0.8778  | 0.7670   | 0.5386  |
 | Decision Tree       | 0.7563   | 0.8330  | 0.6667    | 0.9333  | 0.7778   | 0.5611   |
 | KNN                 | 0.7766   | 0.8307  | 0.7300    | 0.8111  | 0.7684   | 0.5568   |
-| Naive Bayes         | 0.5909   | 0.7268  | 0.5179    | 0.7632  | 0.6170   | 0.2298   |
-| Random Forest (Ensemble) | 0.8182 | 0.9179 | 0.7292    | 0.9211  | 0.8140   | 0.6576   |
-| XGBoost (Ensemble)  | 0.8182   | 0.8800  | 0.7292    | 0.9211  | 0.8140   | 0.6576   |
+| Naive Bayes         | 0.7411   | 0.7934  | 0.6789    | 0.8222  | 0.7437   | 0.4961   |
+| Random Forest (Ensemble) | 0.8528 | 0.9283 | 0.8280    | 0.8556  | 0.8415   | 0.7045   |
+| XGBoost (Ensemble)  | 0.8731   | 0.9248  | 0.8495    | 0.8778  | 0.8634   | 0.7453   |
 
 **Model Performance Observsations**
 
 | ML Model Name             | Observation ( model performance  )                                                                                      |
 |---------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| Logistic Regression       | Moderate performance (~73% accuracy). Works reasonably well for linearly separable data but struggles with complex patterns. Precision and recall are balanced, but overall lower than tree-based models, indicating possible underfitting. |
-| Decision Tree             | Very high performance (~94.7% accuracy). Captures non-linear relationships well. High recall and F1 indicate good sensitivity, but may overfit on training data if depth or leaf constraints are not applied. |
-| KNN                       | High performance (~93.8% accuracy). Sensitive to feature scaling; performs well here likely due to standardized features. Slightly lower precision indicates some misclassification of negatives as positives. |
-| Naive Bayes               | Lowest performance (~72% accuracy). Assumes feature independence, which may not hold, leading to misclassifications. High recall suggests it predicts positives reasonably well, but precision is low, causing more false positives. |
-| Random Forest (Ensemble)  | Best overall performance (~94.97% accuracy). Ensemble of multiple trees reduces overfitting, robust across metrics. Excellent balance of precision, recall, F1, and MCC; captures complex patterns effectively. |
-| XGBoost (Ensemble)        | Strong performance (~93.6% accuracy). Gradient boosting handles complex patterns and is robust to outliers. Slightly lower than Random Forest but computationally efficient and provides good precision-recall balance. |
+| Logistic Regression       | Shows balanced performance with good Recall (0.8778), meaning it identifies most heart disease cases correctly. However, moderate MCC (0.5386) indicates limited overall correlation compared to ensemble models. Suitable as a strong baseline linear model. |
+| Decision Tree             | Achieves very high Recall (0.9333), making it good for minimizing false negatives. However, slightly lower Precision suggests more false positives. Performance is decent but prone to overfitting compared to ensemble methods. |
+| KNN                       | Provides balanced Accuracy (0.7766) with stable Precision and Recall. Performance is consistent but does not outperform ensemble methods. Sensitive to scaling and data distribution. |
+| Naive Bayes               |Lowest overall performance among all models. Lower AUC (0.7934) and MCC (0.4961) indicate weaker predictive power. Assumption of feature independence likely limits performance on this dataset. Serves mainly as a baseline probabilistic model. |
+| Random Forest (Ensemble)  |Strong performance across all metrics with high AUC (0.9283) and MCC (0.7045). Demonstrates good balance between Precision and Recall. Robust and less prone to overfitting due to ensemble averaging. |
+| XGBoost (Ensemble)        | Best performing model overall. Highest Accuracy (0.8731), F1 Score (0.8634), and MCC (0.7453). Excellent balance between Precision and Recall. Strong generalization capability due to gradient boosting optimization. |
 
 
 
